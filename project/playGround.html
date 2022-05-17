@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1">
+	<meta charset="utf-8">
+	<title>線上玩 桌遊 情書</title>
+	<link rel="canonical" href="http://lilyyeh.ga:3000/">
+	<meta name=“description” content="線上玩 桌遊 情書"></meta>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw==" crossorigin="anonymous" />
+	<link type="text/css" rel="stylesheet" href="/loveletter/assets/css/playGround.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA==" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="playGround">
+	<form id="enter" v-if="showEnter">
+		<h2>{{title}}</h2>
+		輸入暱稱：<input type="text" id="nickName" :value="userName" v-model="userName"><br>
+		輸入房間ID：<input type="text" id="roomID" :value="roomName" v-model="roomName"><br>
+		<button type="button" @click="enterRoom()">送出</button>
+	</form>
+	<div id="waiting" v-if="showWaiting">
+		等待玩家進入{{roomName}}...
+		<p v-for="(user,index) in roomUsers">{{user+"進入聊天室"}}</p>
+		<button v-if="Object.keys(roomUsers).length>=2" class="start" @click="startGame()">遊戲開始</button>
+	</div>
+
+	<section id="gameTable" v-if="showGameTable">
+		<ul>
+			<li v-for="(player,playerID) in roomPlayers" :id="player.position">
+				<lable class="playerName">
+					<img class="playerPhoto" :src="domain+'/images/'+player.position+'.svg'">{{player.playerName}}
+				</lable>
+
+
+				<div class="card" v-if="player.winner">
+					<img class="imWinner" v-if="player.mycard" :src="domain+'/images/victor.svg'">
+					<img v-if="!player.mycard" :src="domain+'/images/victor.svg'">
+				</div>
+				<div class="card" v-else-if="player.out">
+					<img class="imOut" v-if="player.mycard" :src="domain+'/images/skull.svg'">
+					<img v-if="!player.mycard" :src="domain+'/images/skull.svg'">
+				</div>
+				<ul class="myCard" v-else-if="player.mycard">
+					<li v-for="(card,index) in cards" @click.prevent="chooseCard(index)">
+						<img :src="domain+'/images/role_'+cardsData[card]+'.jpg'">
+					</li>
+				</ul>
+				<div class="card" v-else>
+					<img :src="domain+'/images/unknowCard.png'">
+					<img v-if="player.playing" :src="domain+'/images/unknowCard.png'">
+				</div>
+			</li>
+		</ul>
+
+		<div id="cardsNum">牌庫剩餘{{cardsNum}}張</div>
+
+		<div id="table" v-if="showPlayResult">
+			<img class="playCard" :src="domain+'/images/role_'+cardsData[playerCardName]+'.jpg'">
+			<div class="txt">
+				<span v-html="msg2"></span><br>
+				<h1>{{h1}}</h1>
+				<button v-if="data.winner" @click="startGame()">重新一局</button>
+			</div>
+		</div>
+
+		<div id="guard" v-if="showGuard">
+			<p class="desc">猜測一名對手的手牌(不可猜衛兵)，猜測正確對方立刻出局</p>
+			<ul class="playerBtn">
+				<li v-for="(playerName,playerID) in choosePlayer"><input type="radio" name="player" :value="playerID" v-model="guessPlayerID">{{playerName}}</li>
+			</ul>
+			<div class="roleBtn">
+				<button @click="guessCard('神父')">神父</button>
+				<button @click="guessCard('男爵')">男爵</button>
+				<button @click="guessCard('侍女')">侍女</button>
+				<button @click="guessCard('王子')">王子</button>
+				<button @click="guessCard('國王')">國王</button>
+				<button @click="guessCard('伯爵夫人')">伯爵夫人</button>
+				<button @click="guessCard('公主')">公主</button>
+			</div>
+		</div>
+		<div id="priest" v-if="showPriest">
+			<p class="desc">看一名玩家的所有手牌</p>
+			<div class="playerBtn">
+				<button v-for="(playerName,playerID) in choosePlayer" @click="lookCard(playerID)">{{playerName}}</button>
+			</div>
+		</div>
+		<div id="lord" v-if="showLord">
+			<p class="desc">和一名玩家私下比較手牌，數值較低的玩家直接出局</p>
+			<div class="playerBtn">
+				<button v-for="(playerName,playerID) in choosePlayer" @click="compareCard(playerID)">{{playerName}}</button>
+			</div>
+		</div>
+		<div id="maid" v-if="showMaid">
+			<p class="desc">打出侍女後，到下個自己的回合之前，所有玩家的牌都對你無效</p>
+			<div class="roleBtn">
+				<button @click="maidProtectCard()">侍女保護我</button>
+			</div>
+		</div>
+		<div id="prince" v-if="showPrince">
+			<p class="desc">指定一個玩家，棄掉他的手牌，棄掉時不可發動效果(公主除外)，該玩家再抽一張牌</p>
+			<div class="playerBtn">
+				<button v-for="(playerName,playerID) in choosePlayer" @click="drawCard(playerID)">{{playerName}}</button>
+			</div>
+		</div>
+		<div id="king" v-if="showKing">
+			<p class="desc">和一名尚未出局的對手交換手牌</p>
+			<div class="playerBtn">
+				<button v-for="(playerName,playerID) in choosePlayer" @click="changeCard(playerID)">{{playerName}}</button>
+			</div>
+		</div>
+		<div id="countess" v-if="showCountess || forceShowCountess">
+			<p class="desc" v-if="showCountess">打出伯爵夫人手牌，不會發生任何效果</p>
+			<p class="desc" v-if="forceShowCountess">當持有這張牌時，又抽到國王或是王子，就必須棄掉伯爵夫人這張牌</p>
+			<div class="roleBtn">
+				<button @click="discardCard()">棄掉伯爵夫人手牌</button>
+			</div>
+		</div>
+		<div id="princess" v-if="showPrincess">
+			<p class="desc">把公主打出在桌面，就會立刻出局</p>
+			<div class="roleBtn">
+				<button @click="discardPrincess()">打出公主</button>
+			</div>
+		</div>
+		<p id="maidProtect" v-if="maidProtect">侍女保護中，所有玩家的牌都對你無效</p>
+	</section>
+</div>
+
+<script src="/loveletter/assets/js/playGround.js"></script>
+</body>
+</html>

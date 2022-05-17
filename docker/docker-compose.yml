@@ -1,0 +1,55 @@
+version: '3'
+
+networks:
+  backend:
+  frontend:
+
+services:
+
+  ### reverse-proxy #########################################
+  reverse-proxy:
+    container_name: reverse-proxy
+    networks:
+      - frontend
+      - backend
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/reverse-proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/reverse-proxy/conf.d:/etc/nginx/conf.d
+      - ../:/usr/share/nginx/html/loveletter
+
+  ### NGINX Server #########################################
+  loveletter:
+    container_name: loveletter
+    networks:
+      - backend
+    image: nginx:latest
+    expose:
+      - 8083
+      - 4433
+    volumes:
+      - ./nginx/conf/loveletter.conf:/etc/nginx/nginx.conf
+      #- ./nginx/log/loveletter/error.log:/var/log/nginx/error.log
+      - ../:/usr/share/nginx/html/loveletter
+
+  ### node #########################################
+  node:
+    container_name: node
+    networks:
+      - frontend
+      - backend
+    restart: always
+    image: node:13
+    ports:
+      - "3000:3000"
+    command: "node /usr/share/nginx/html/loveletter/project/server.js"
+    volumes:
+      #- ./node/log/error.log:/var/log/node/error.log
+      - ../:/usr/share/nginx/html/loveletter
+
+
+

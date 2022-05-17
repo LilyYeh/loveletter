@@ -1,0 +1,2 @@
+2022/01/21 07:13:27 [error] 24#24: *76 directory index of "/usr/share/nginx/html/vuejs/kingdom/" is forbidden, client: 192.168.112.10, server: server_ip, request: "GET /kingdom/ HTTP/1.0", host: "139.162.14.195"
+2022/01/21 07:16:15 [error] 24#24: *77 directory index of "/usr/share/nginx/html/vuejs/kingdom/" is forbidden, client: 192.168.112.10, server: server_ip, request: "GET /kingdom/ HTTP/1.0", host: "139.162.14.195"

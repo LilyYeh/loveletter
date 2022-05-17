@@ -1,0 +1,145 @@
+body{
+    font-family: '微軟正黑體';
+    font-size: 12px;
+}
+form#enter{
+    text-align: center;
+}
+h2{
+    margin: 20px;
+    font-size: 20px;
+}
+#waiting{
+    margin-top: 20px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 30px;
+}
+#player1,#player2,#player3,#player4{
+    position: absolute;
+    display: grid;
+    text-align: center;
+}
+#player1{
+    left: calc(50% - 15%);
+    bottom: 1%;
+    width: 30%;
+}
+#player2{
+    top: 41%;
+    right: 1%;
+}
+#player3{
+    top: 1%;
+    left: calc(50% - 10%);
+    width: 20%;
+}
+#player4{
+    top: 41%;
+    left: 1%;
+}
+.myCard{
+    order: 1;
+    width: 100%;
+}
+.myCard li{
+    display: contents;
+}
+.myCard img{
+    width: 40%;
+}
+.myCard img:hover{
+    border: 4px solid #FFD306;
+    border-radius: 5px;
+}
+.playerName{
+    font-size: 12px;
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.playerPhoto{
+    width: 24px;
+}
+.card{
+
+}
+.card img{
+    width: 30px;
+}
+.card img.imWinner,.card img.imOut{
+    width: 100px;
+    margin-bottom: 15px;
+}
+#cardsNum{
+    position: absolute;
+    top: 3%;
+    left: 3%;
+    font-size: 16px;
+    font-weight: bold;
+}
+#table{
+    position: absolute;
+    top: calc(50% - 33%);
+    left: calc(50% - 40%);
+    width: 80%;
+    height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#table img{
+    width: 15%;
+    margin-right: 15px;
+}
+#table .txt {
+    font-size: 16px;
+    line-height: 24px;
+}
+#table .txt span{
+}
+#table .txt h1{
+    font-weight: bold;
+}
+#guard, #priest, #lord, #prince, #king, #countess, #maid, #maidProtect, #princess{
+    position: absolute;
+    width: 480px;
+    left: calc(50% - 250px);
+    bottom: 38%;
+    border: 2px solid #FFD306;
+    border-radius: 10px;
+    padding: 10px;
+}
+#maidProtect{
+    padding: 5px;
+    text-align: center;
+}
+p.desc{
+    font-size: 16px;
+    padding: 5px 15px;
+}
+.roleBtn, .playerBtn{
+    font-size: 16px;
+    padding: 5px 15px;
+}
+.playerBtn button{
+    margin: 0 5px;
+}
+.playerBtn li{
+    display: inline;
+}
+@media screen and (max-width: 900px) {
+    #gameTable{
+        position: relative;
+        min-height: 400px;
+        margin-top: 15px;
+    }
+    #table .txt{
+        font-size: 12px;
+        line-height: 16px;
+    }
+    #guard, #priest, #lord, #prince, #king, #countess, #maid, #maidProtect, #princess{
+        bottom: 40%;
+    }
+}
